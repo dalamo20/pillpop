@@ -1,3 +1,20 @@
+# PillPop
+
+PillPop is a React Native app designed to help users track their medication intake with reminders, progress tracking, and AI medication recognition.
+
+## Features
+
+- Track weekly medication intake
+- AI medication recognition (work in progress)
+- Firebase authentication for user profiles
+- Reminder notifications for scheduled pills
+
+## Tech Stack
+
+- **Frontend:** React Native w/ TypeScript
+- **Navigation:** React Navigation
+- **Database:** Firebase Firestore
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
