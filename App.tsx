@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import BottomTabs from './navigation/BottomTabs';
 import type {PropsWithChildren} from 'react';
 import {
   ScrollView,
