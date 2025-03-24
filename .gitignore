@@ -73,3 +73,12 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+node_modules/
+android/.gradle/
+android/app/build/
+ios/Pods/
+ios/build/
+.vscode/
+.env
+.env.local
