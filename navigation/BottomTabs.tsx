@@ -1,7 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import HomeScreen from '../screens/tabs/HomeScreen.tsx';
-import { NavigationContainer } from '@react-navigation/native';
 import AddMedScreen from '../screens/tabs/AddMedScreen.tsx';
 import TrackerScreen from '../screens/tabs/TrackerScreen.tsx';
 import HomeIcon from '../assets/icons/homeIcon.svg';
@@ -12,16 +11,15 @@ const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   return (
-    <NavigationContainer>
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ size }) => {
           if (route.name === 'Home') {
-            return <HomeIcon width={size} height={size} fill={color} />;
+            return <HomeIcon width={size} height={size} />;
           } else if (route.name === 'Add') {
-            return <AddIcon width={size} height={size} fill={color} />;
+            return <AddIcon width={size} height={size} />;
           } else if (route.name === 'Tracker') {
-            return <TrackerIcon width={size} height={size} fill={color} />;
+            return <TrackerIcon width={size} height={size} />;
           }
         },
         tabBarActiveTintColor: '#007AFF',
@@ -32,7 +30,6 @@ const BottomTabs = () => {
         <Tab.Screen name="Add" component={AddMedScreen} />
         <Tab.Screen name="Tracker" component={TrackerScreen} />
     </Tab.Navigator>
-    </NavigationContainer>
   );
 }
 
