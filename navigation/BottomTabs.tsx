@@ -1,8 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import HomeScreen from '../screens/tabs/HomeScreen.tsx';
-import AddMedScreen from '../screens/tabs/AddMedScreen.tsx';
-import TrackerScreen from '../screens/tabs/TrackerScreen.tsx';
+import AddPillScreen from '../screens/tabs/AddPillScreen.tsx';
+import PillCabinetScreen from '../screens/tabs/PillCabinetScreen.tsx';
 import HomeIcon from '../assets/icons/homeIcon.svg';
 import AddIcon from '../assets/icons/addIcon.svg';
 import TrackerIcon from '../assets/icons/trackerIcon.svg';
@@ -18,7 +18,7 @@ const BottomTabs = () => {
             return <HomeIcon width={size} height={size} />;
           } else if (route.name === 'Add') {
             return <AddIcon width={size} height={size} />;
-          } else if (route.name === 'Tracker') {
+          } else if (route.name === 'PillCabinet') {
             return <TrackerIcon width={size} height={size} />;
           }
         },
@@ -27,8 +27,8 @@ const BottomTabs = () => {
       })}
     >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Add" component={AddMedScreen} />
-        <Tab.Screen name="Tracker" component={TrackerScreen} />
+        <Tab.Screen name="Add" component={AddPillScreen} />
+        <Tab.Screen name="PillCabinet" component={PillCabinetScreen} />
     </Tab.Navigator>
   );
 }
