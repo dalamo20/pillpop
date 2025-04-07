@@ -11,9 +11,13 @@ PillPop is a React Native app designed to help users track their medication inta
 
 ## Tech Stack
 
-- **Frontend:** React Native w/ TypeScript
-- **Navigation:** React Navigation
-- **Database:** Firebase Firestore
+- **Framework:** React Native (with TypeScript)
+- **Navigation:** React Navigation (Native Stack & Bottom Tabs)
+- **Authentication:** Firebase Auth (modular SDK + Google Sign-In)
+- **Backend/Database:** Firebase Firestore
+- **State Management:** React Context API (Auth)
+- **Toast Notifications:** react-native-toast-message
+- **Styling:** React Native Stylesheets
 
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 

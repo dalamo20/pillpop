@@ -16,7 +16,7 @@ const BottomTabs = () => {
         tabBarIcon: ({ size }) => {
           if (route.name === 'Home') {
             return <HomeIcon width={size} height={size} />;
-          } else if (route.name === 'Add') {
+          } else if (route.name === 'Add Medication') {
             return <AddIcon width={size} height={size} />;
           } else if (route.name === 'PillCabinet') {
             return <TrackerIcon width={size} height={size} />;
@@ -27,7 +27,7 @@ const BottomTabs = () => {
       })}
     >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Add" component={AddPillScreen} />
+        <Tab.Screen name="Add Medication" component={AddPillScreen} />
         <Tab.Screen name="PillCabinet" component={PillCabinetScreen} />
     </Tab.Navigator>
   );

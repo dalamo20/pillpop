@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native/Libraries/Components/LayoutConformance/LayoutConformance.js b/node_modules/react-native/Libraries/Components/LayoutConformance/LayoutConformance.js
+index 9b3ebd4..b32fd9c 100644
+--- a/node_modules/react-native/Libraries/Components/LayoutConformance/LayoutConformance.js
++++ b/node_modules/react-native/Libraries/Components/LayoutConformance/LayoutConformance.js
+@@ -50,7 +50,7 @@ function UnimplementedLayoutConformance(props: Props): React.Node {
+ 
+ export default (isFabricUIManagerInstalled
+   ? LayoutConformance
+-  : UnimplementedLayoutConformance) as component(...Props);
++  : UnimplementedLayoutConformance);
+ 
+ const styles = StyleSheet.create({
+   container: {
