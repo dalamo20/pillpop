@@ -40,6 +40,16 @@ const EditPillScreen = ({ route, navigation }: EditPillScreenProps) => {
     setShowTimePickerIndex(null);
   };
 
+  const handleAddReminder = () => {
+    setReminderTimes([...reminderTimes, new Date()]);
+  };
+
+  const handleRemoveReminder = (index: number) => {
+    const updatedTimes = [...reminderTimes];
+    updatedTimes.splice(index, 1);
+    setReminderTimes(updatedTimes);
+  };
+
   const handleSave = async () => {
     try {
       await updateDoc(doc(db, 'medications', pill.id), {
@@ -75,12 +85,18 @@ const EditPillScreen = ({ route, navigation }: EditPillScreenProps) => {
         onChangeText={setDosageAmount}
       />
 
-      <Text style={styles.label}>Reminder Times</Text>
+<Text style={styles.label}>Reminder Times</Text>
       {reminderTimes.map((time, index) => (
-        <TouchableOpacity key={index} onPress={() => setShowTimePickerIndex(index)}>
-          <Text style={styles.timeButton}>{formatTime(time)}</Text>
-        </TouchableOpacity>
+        <View key={index} style={styles.reminderRow}>
+          <TouchableOpacity onPress={() => setShowTimePickerIndex(index)}>
+            <Text style={styles.timeButton}>{formatTime(time)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleRemoveReminder(index)}>
+            <Text style={styles.removeText}>❌</Text>
+          </TouchableOpacity>
+        </View>
       ))}
+      <Button title="Add Reminder Time" onPress={handleAddReminder} />
 
       {showTimePickerIndex !== null && (
         <DateTimePicker
@@ -137,32 +153,41 @@ const EditPillScreen = ({ route, navigation }: EditPillScreenProps) => {
 export default EditPillScreen;
 
 const styles = StyleSheet.create({
-    container: {
-      backgroundColor: '#FFF7F1',
-      padding: 20,
-    },
-    label: {
-      fontWeight: 'bold',
-      marginTop: 16,
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 8,
-      padding: 10,
-      marginTop: 4,
-    },
-    checkboxRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: 16,
-    },
-    timeButton: {
-      padding: 10,
-      backgroundColor: '#eee',
-      borderRadius: 6,
-      marginTop: 6,
-    },
+  container: {
+    backgroundColor: '#FFF7F1',
+    padding: 20,
+  },
+  label: {
+    fontWeight: 'bold',
+    marginTop: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 4,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  timeButton: {
+    padding: 10,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+    marginTop: 6,
+  },
+  reminderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  removeText: {
+    marginLeft: 10,
+    fontSize: 16,
+  },
 });
   
