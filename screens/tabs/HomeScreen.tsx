@@ -4,9 +4,17 @@ import { AuthContext } from '../../context/AuthContext';
 import { getFirestore, collection, query, where, onSnapshot, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { app } from '../../config/firebaseConfig';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
-import uuid from 'react-native-uuid';
 
 const db = getFirestore(app);
+
+const getDateStringForDay = (day: string) => {
+  const dayIndex = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(day);
+  const today = new Date();
+  const delta = dayIndex - today.getDay();
+  const date = new Date(today);
+  date.setDate(today.getDate() + delta);
+  return date.toISOString().split('T')[0];
+};
 
 const HomeScreen = () => {
   const { user } = useContext(AuthContext);
@@ -15,8 +23,10 @@ const HomeScreen = () => {
   const [pillsToTake, setPillsToTake] = useState(0);
   const [pillsTaken, setPillsTaken] = useState(0);
   const [pillCards, setPillCards] = useState<any[]>([]);
+  const [weekProgress, setWeekProgress] = useState<Record<string, 'complete' | 'inProgress' | 'missed' | 'empty'>>({});
   const todayDay = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-
+  const today = new Date();
+  const todayKey = today.toISOString().split('T')[0];
   
   useEffect(() => {
     const now = new Date();
@@ -37,6 +47,7 @@ const HomeScreen = () => {
       let toTake = 0;
       let taken = 0;
       const pillList: any[] = [];
+      const weekly: Record<string, { toTake: number, taken: number }> = {};
 
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -44,12 +55,18 @@ const HomeScreen = () => {
         const daysOfWeek = data.daysOfWeek || [];
         const completions = data.completions || {};
 
-        if (daysOfWeek.includes(todayDay)) {
-          times.forEach((t: any, i: number) => {
-            const dateObj = new Timestamp(t.seconds, 0).toDate();
-            const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const pillId = `${docSnap.id}_${i}`;
-            const completed = completions[pillId] || false;
+        daysOfWeek.forEach((day: string) => {
+          if (!weekly[day]) weekly[day] = { toTake: 0, taken: 0 };
+        });
+
+        times.forEach((t: any, i: number) => {
+          const pillId = `${docSnap.id}_${i}`;
+          const dateObj = new Timestamp(t.seconds, 0).toDate();
+          const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          if (daysOfWeek.includes(todayDay)) {
+            const completionKey = `${todayKey}_${pillId}`;
+            const completed = completions[completionKey] || false;
 
             pillList.push({
               docId: docSnap.id,
@@ -65,13 +82,40 @@ const HomeScreen = () => {
 
             if (completed) taken++;
             else toTake++;
+          }
+      
+        daysOfWeek.forEach((day: string) => {
+          const dayKey = getDateStringForDay(day);
+          const completionKey = `${dayKey}_${pillId}`;
+          if (!weekly[day]) weekly[day] = { toTake: 0, taken: 0 };
+          if (completions[completionKey]) weekly[day].taken++;
+          weekly[day].toTake++;
           });
+        });
+      });
+
+      const progress: Record<string, 'complete' | 'inProgress' | 'missed' | 'empty'> = {};
+      const dayIndexToday = today.getDay();
+
+      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach((day, index) => {
+        const stats = weekly[day];
+        if (!stats || stats.toTake === 0) {
+          progress[day] = 'complete';
+        } else if (index === dayIndexToday) {
+          if (stats.taken === stats.toTake) progress[day] = 'complete';
+          else progress[day] = 'inProgress';
+        } else if (index < dayIndexToday) {
+          if (stats.taken === stats.toTake) progress[day] = 'complete';
+          else progress[day] = 'missed';
+        } else {
+          progress[day] = 'empty';
         }
       });
 
       setPillsToTake(toTake);
       setPillsTaken(taken);
       setPillCards(pillList);
+      setWeekProgress(progress);
     });
 
     return () => unsubscribe();
@@ -80,11 +124,27 @@ const HomeScreen = () => {
   const handleToggleComplete = async (docId: string, pillId: string, completed: boolean) => {
     try {
       const medicationRef = doc(db, 'medications', docId);
+      const todayKey = new Date().toISOString().split('T')[0];
+      const completionKey = `${todayKey}_${pillId}`;
       await updateDoc(medicationRef, {
-        [`completions.${pillId}`]: !completed,
+        [`completions.${completionKey}`]: !completed,
       });
     } catch (error) {
       console.error('Error updating pill completion:', error);
+    }
+  };
+
+  const getCircleStyle = (day: string) => {
+    const state = weekProgress[day];
+    switch (state) {
+      case 'complete':
+        return { backgroundColor: '#4CAF50', borderColor: '#4CAF50' };
+      case 'inProgress':
+        return { backgroundColor: '#DDF85A', borderColor: '#4CAF50' };
+      case 'missed':
+        return { backgroundColor: '#F44336', borderColor: '#F44336' };
+      default:
+        return { backgroundColor: 'transparent', borderColor: '#ccc' };
     }
   };
 
@@ -103,7 +163,21 @@ const HomeScreen = () => {
         <View style={styles.weekContainer}>
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
             <View key={index} style={styles.dayColumn}>
-              <View style={styles.dayCircle} />
+              <BouncyCheckbox
+                isChecked={weekProgress[day] === 'complete'}
+                useBuiltInState={false}
+                disableText
+                size={20}
+                fillColor="#4CAF50"
+                unFillColor={getCircleStyle(day).backgroundColor}
+                iconStyle={{
+                  borderColor: getCircleStyle(day).borderColor,
+                  borderWidth: 2,
+                  borderRadius: 50,
+                }}
+                innerIconStyle={{ borderWidth: 2 }}
+                iconComponent={undefined}
+              />
               <Text style={styles.dayText}>{day}</Text>
             </View>
           ))}
