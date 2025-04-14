@@ -4,6 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { getFirestore, collection, query, where, onSnapshot, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { app } from '../../config/firebaseConfig';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { calculateWeeklyProgress } from '../../utils/progress';
 
 const db = getFirestore(app);
 
@@ -83,15 +84,21 @@ const HomeScreen = () => {
             if (completed) taken++;
             else toTake++;
           }
-      
-        daysOfWeek.forEach((day: string) => {
-          const dayKey = getDateStringForDay(day);
-          const completionKey = `${dayKey}_${pillId}`;
-          if (!weekly[day]) weekly[day] = { toTake: 0, taken: 0 };
-          if (completions[completionKey]) weekly[day].taken++;
-          weekly[day].toTake++;
-          });
         });
+
+          const progressStats = calculateWeeklyProgress({
+            completions,
+            times,
+            daysOfWeek,
+            docId: docSnap.id,
+            today,
+          });
+  
+          for (const day in progressStats) {
+            if (!weekly[day]) weekly[day] = { toTake: 0, taken: 0 };
+            weekly[day].toTake += progressStats[day].toTake;
+            weekly[day].taken += progressStats[day].taken;
+          }
       });
 
       const progress: Record<string, 'complete' | 'inProgress' | 'missed' | 'empty'> = {};
