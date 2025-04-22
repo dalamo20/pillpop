@@ -74,6 +74,7 @@ yarn-error.log
 !.yarn/sdks
 !.yarn/versions
 
+android/build/
 android/.gradle/
 android/app/build/
 ios/Pods/
@@ -96,4 +97,6 @@ out/
 .watchmanconfig
 .firebase/
 firebase-debug.log
+android/hs_err_pid*.log
+android/replay_pid*.log
 

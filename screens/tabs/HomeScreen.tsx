@@ -5,6 +5,7 @@ import { getFirestore, collection, query, where, onSnapshot, Timestamp, updateDo
 import { app } from '../../config/firebaseConfig';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { calculateWeeklyProgress } from '../../utils/progress';
+// import TestTriggerNotification from '../TestNotificationTrigger';
 
 const db = getFirestore(app);
 
@@ -161,6 +162,7 @@ const HomeScreen = () => {
       <View style={styles.section}>
         <Text style={styles.date}>{currentDate}</Text>
         <Text style={styles.time}>{currentTime}</Text>
+        {/* <TestTriggerNotification /> */}
       </View>
       <View style={styles.separator} />
 

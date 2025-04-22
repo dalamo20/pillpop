@@ -5,6 +5,8 @@ import { getFirestore, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { app } from '../config/firebaseConfig';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PillStackParamList } from '../navigation/types';
+import { cancelScheduledNotification, scheduleDailyNotification  } from '../utils/notifications';
+
 
 const db = getFirestore(app);
 
@@ -64,6 +66,36 @@ const EditPillScreen = ({ route, navigation }: EditPillScreenProps) => {
         beforeMeal,
         updatedAt: Timestamp.now(),
       });
+
+      pill.reminderTimes?.forEach((_, index) => {
+        cancelScheduledNotification(`${pill.id}-${index}`);
+      });
+  
+      // Schedule new notifications
+      reminderTimes.forEach((time, index) => {
+        const now = new Date();
+        const fireDate = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          time.getHours(),
+          time.getMinutes(),
+          0
+        );
+  
+        if (fireDate < now) {
+          fireDate.setDate(fireDate.getDate() + 1); // push to next day if time has passed
+        }
+  
+        scheduleDailyNotification(
+          `Time to take ${pillName}`,
+          `Dosage: ${dosageAmount} ${unit}${withFood ? ' with food' : ''}`,
+          fireDate,
+          pill.id,
+          index
+        );
+      });
+
       Alert.alert('Success', 'Medication updated!');
       navigation.goBack();
     } catch (error) {
