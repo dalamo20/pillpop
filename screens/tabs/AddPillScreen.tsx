@@ -1,12 +1,15 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, StyleSheet, Button, ScrollView, TouchableOpacity, Alert, Platform, } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Button, ScrollView, TouchableOpacity, Platform, } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { AuthContext } from '../../context/AuthContext';
 import { getFirestore, collection, addDoc, Timestamp } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import Toast from 'react-native-toast-message';
 import { app } from '../../config/firebaseConfig';
 
 const db = getFirestore(app);
+const functions = getFunctions(app);
 
 const AddPillScreen = () => {
   const { user } = useContext(AuthContext);
@@ -51,9 +54,46 @@ const AddPillScreen = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const handleAutoFill = async () => {
+    if (!pillName) {
+      Toast.show({ type: 'error', text1: 'Missing Info', text2: 'Please enter a pill name first.' });
+      return;
+    }
+
+    try {
+      const generatePillInfo = httpsCallable(functions, 'generatePillInfo');
+      const response = await generatePillInfo({ pillName });
+      const data = response.data as { result: string };
+      const lines = data.result?.split('\n').map((l) => l.trim()).filter(Boolean) ?? [];
+
+      let dosage = '';
+      let instructionText = '';
+      let frequency = '';
+
+      lines.forEach((line) => {
+        if (/dosage/i.test(line)) dosage = line.split(':')[1]?.trim() ?? '';
+        else if (/instructions?/i.test(line)) instructionText = line.split(':')[1]?.trim() ?? '';
+        else if (/frequency/i.test(line)) frequency = line.split(':')[1]?.trim() ?? '';
+      });
+
+      if (dosage) setDosageAmount(dosage.replace(/[^\d.]/g, ''));
+      if (instructionText) setInstructions(instructionText);
+      if (frequency?.toLowerCase().includes('meal')) {
+        if (frequency.includes('before')) setWhenToTake('beforeMeal');
+        else if (frequency.includes('with')) setWhenToTake('withFood');
+        else if (frequency.includes('after')) setWhenToTake('afterMeal');
+      }
+
+      Toast.show({ type: 'success', text1: 'Autofill Complete', text2: 'Fields populated using AI.' });
+    } catch (error) {
+      console.error('Autofill error:', error);
+      Toast.show({ type: 'error', text1: 'Autofill Failed', text2: 'Unable to retrieve pill data.' });
+    }
+  };
+
   const handleSave = async () => {
     if (!pillName || !dosageAmount || !reminderTimes.length || !daysOfWeek.length) {
-      Alert.alert('Missing Info', 'Please fill all required fields.');
+      Toast.show({ type: 'error', text1: 'Missing Fields', text2: 'Please complete all required fields.' });
       return;
     }
 
@@ -73,7 +113,8 @@ const AddPillScreen = () => {
 
     try {
       await addDoc(collection(db, 'medications'), newMed);
-      Alert.alert('Success', 'Medication saved!');
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Medication saved!' });
+
       setPillName('');
       setDosageAmount('');
       setUnit('pill');
@@ -85,7 +126,7 @@ const AddPillScreen = () => {
       setInstructions('');
     } catch (error) {
       console.error('Error saving medication:', error);
-      Alert.alert('Error', 'Failed to save medication.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to save medication.' });
     }
   };
 
@@ -93,14 +134,10 @@ const AddPillScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.label}>Pill Name *</Text>
       <TextInput style={styles.input} value={pillName} onChangeText={setPillName} />
+      <Button title="✨ Autofill Info" onPress={handleAutoFill} />
 
       <Text style={styles.label}>Dosage Amount *</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        value={dosageAmount}
-        onChangeText={setDosageAmount}
-      />
+      <TextInput style={styles.input} keyboardType="numeric" value={dosageAmount} onChangeText={setDosageAmount} />
 
       <Text style={styles.label}>Unit</Text>
       <Picker selectedValue={unit} onValueChange={(val) => setUnit(val)}>
@@ -111,11 +148,7 @@ const AddPillScreen = () => {
       <Text style={styles.label}>When to Take</Text>
       <View style={styles.checkboxRow}>
         {['beforeMeal', 'withFood', 'afterMeal'].map((option) => (
-          <TouchableOpacity
-            key={option}
-            onPress={() => setWhenToTake(option as typeof whenToTake)}
-            style={styles.radioOption}
-          >
+          <TouchableOpacity key={option} onPress={() => setWhenToTake(option as typeof whenToTake)} style={styles.radioOption}>
             <Text>{whenToTake === option ? '🔘' : '⚪'} {option.replace(/([A-Z])/g, ' $1')}</Text>
           </TouchableOpacity>
         ))}
@@ -159,35 +192,20 @@ const AddPillScreen = () => {
       {showAdvanced && (
         <>
           <Text style={styles.label}>Expiration Date</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-            value={expirationDate}
-            onChangeText={setExpirationDate}
-          />
+          <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={expirationDate} onChangeText={setExpirationDate} />
 
           <Text style={styles.label}>Refills Left</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={refillsLeft}
-            onChangeText={setRefillsLeft}
-          />
+          <TextInput style={styles.input} keyboardType="numeric" value={refillsLeft} onChangeText={setRefillsLeft} />
 
           <Text style={styles.label}>Instructions</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. Take with water"
-            value={instructions}
-            onChangeText={setInstructions}
-          />
+          <TextInput style={styles.input} placeholder="e.g. Take with water" value={instructions} onChangeText={setInstructions} />
         </>
       )}
 
       <Button title="Save Medication" onPress={handleSave} />
     </ScrollView>
   );
-}
+};
 
 export default AddPillScreen;
 

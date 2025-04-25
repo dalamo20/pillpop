@@ -97,6 +97,11 @@ out/
 .watchmanconfig
 .firebase/
 firebase-debug.log
+firebase-debug.*.log
+.firebaserc
+functions/node_modules/
+functions/lib/
+lib/
 android/hs_err_pid*.log
 android/replay_pid*.log
 
