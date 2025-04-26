@@ -26,13 +26,33 @@ const openai = new OpenAI({
 
 export const generatePillInfo = functions.https.onCall(
   async (data: any, context) => {
-    const pillName = data?.pillName;
+    const { pillName, form, condition, ageGroup, timePreference } = data;
 
     if (typeof pillName !== 'string' || !pillName.trim()) {
       throw new functions.https.HttpsError('invalid-argument', 'Pill name is required and must be a non-empty string.');
     }
 
-    const prompt = `Provide common dosage, instructions, and frequency for the medication: ${pillName}`;
+    const prompt = `
+    You are a concise medical assistant.
+
+    You MUST always return all of the following fields, no exceptions. 
+    If uncertain, use reasonable defaults or write "Unspecified".
+
+    Format exactly as:
+    Dosage: ...
+    Instructions: ...
+    Frequency: ...
+    Unit: ...
+    WhenToTake: ...
+    DaysToTake: ...
+    ReminderTimes: ...
+
+    Context:
+    - Medication: ${pillName}
+    - Form: ${form || 'Unspecified'}
+    - Condition: ${condition || 'Unspecified'}
+    - Age Group: ${ageGroup || 'Unspecified'}
+    - Time Preference: ${timePreference || 'Unspecified'}`.trim();
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
