@@ -2,6 +2,8 @@
 
 PillPop is a mobile app built with **React Native** to help users manage their daily medication routine. It offers smart reminders, pill tracking, and AI powered autofill recommendations. Designed with caregivers, patients, and real-life routines in mind.
 
+**NOTE:** Using the browser-based emulator from Appetizer.io means certain features that require device permissions (e.g. push notifications) may not work or be available.
+
 ## Features
 
 - **Track daily & weekly pill intake** with visual progress
